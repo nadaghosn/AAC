@@ -1,8 +1,28 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, field_validator
+
+
+def _normalize_tags(value) -> List[str]:
+    if value is None:
+        raw_items = []
+    elif isinstance(value, str):
+        raw_items = value.split(",")
+    else:
+        raw_items = list(value)
+
+    normalized: List[str] = []
+    seen = set()
+    for item in raw_items:
+        tag = str(item).strip().lower()
+        if not tag:
+            raise ValueError("tags must not contain blank values")
+        if tag not in seen:
+            seen.add(tag)
+            normalized.append(tag)
+    return normalized
 
 
 class TaskStatus(str, Enum):
@@ -25,6 +45,8 @@ class TaskCreate(BaseModel):
     status: TaskStatus = TaskStatus.TODO
     priority: TaskPriority = TaskPriority.MEDIUM
     assignee: Optional[str] = None
+    tags: List[str]
+    
 
     @field_validator("title")
     @classmethod
@@ -36,6 +58,14 @@ class TaskCreate(BaseModel):
             raise ValueError("title must be at most 200 characters")
         return stripped
 
+    @field_validator("tags", mode="before")
+    @classmethod
+    def normalize_tags(cls, value):
+        normalized = _normalize_tags(value)
+        if not normalized:
+            raise ValueError("tags must contain at least one tag")
+        return normalized
+
 
 class TaskUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -45,6 +75,7 @@ class TaskUpdate(BaseModel):
     status: Optional[TaskStatus] = None
     priority: Optional[TaskPriority] = None
     assignee: Optional[str] = None
+    tags: Optional[List[str]] = None
 
     @field_validator("title")
     @classmethod
@@ -58,6 +89,16 @@ class TaskUpdate(BaseModel):
             raise ValueError("title must be at most 200 characters")
         return stripped
 
+    @field_validator("tags", mode="before")
+    @classmethod
+    def normalize_tags(cls, value):
+        if value is None:
+            return None
+        normalized = _normalize_tags(value)
+        if not normalized:
+            raise ValueError("tags must contain at least one tag")
+        return normalized
+
 
 class TaskResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -68,5 +109,6 @@ class TaskResponse(BaseModel):
     status: TaskStatus
     priority: TaskPriority
     assignee: Optional[str]
+    tags: List[str]
     created_at: datetime
     updated_at: datetime

@@ -151,6 +151,22 @@
             font-weight: 700;
         }
 
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .tag-pill {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 0.3rem 0.55rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
         .card-assignee {
             color: var(--muted);
             font-size: 0.85rem;
@@ -177,6 +193,19 @@
         .header-inner {
             justify-content: space-between;
             gap: 1rem;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        #tag-filter {
+            padding: 0.4rem 0.65rem;
+            border: 1px solid var(--border, #cbd5e1);
+            border-radius: 0.65rem;
+            min-width: 10rem;
         }
 
         .modal {
@@ -337,7 +366,11 @@
     <header>
         <div class="header-inner">
             <h1>Task Tracker</h1>
-            <button id="new-task-btn" class="button-edit" type="button">New Task</button>
+            <div class="header-controls">
+                <input id="tag-filter" type="search" placeholder="Filter by tag" aria-label="Filter by tag" />
+                <button id="tag-filter-clear" class="button-edit" type="button">Clear</button>
+                <button id="new-task-btn" class="button-edit" type="button">New Task</button>
+            </div>
         </div>
     </header>
     <main>
@@ -404,6 +437,11 @@
                     <label for="assignee-input">Assignee</label>
                     <input id="assignee-input" name="assignee" type="text" />
                 </div>
+                <div class="modal-field">
+                    <label for="tags-input">Tags</label>
+                    <input id="tags-input" name="tags" type="text" placeholder="Enter tags separated by commas" />
+                    <div id="tags-error" class="field-error"></div>
+                </div>
                 <div class="modal-actions">
                     <button type="button" class="modal-cancel" id="modal-cancel">Cancel</button>
                     <button type="submit" class="modal-submit" id="modal-submit">Create</button>
@@ -412,7 +450,7 @@
         </div>
     </div>
     <script>
-        const API_BASE = 'http://localhost:8000';
+        const API_BASE = 'http://localhost:8001';
         const TASKS_ENDPOINT = `${API_BASE}/tasks`;
         const PRIORITY_ORDER = { High: 0, Medium: 1, Low: 2 };
         const ALLOWED_TRANSITIONS = new Set(['ToDo->InProgress', 'InProgress->Done', 'Done->InProgress']);
@@ -420,6 +458,7 @@
         let tasks = [];
         let boardState = 'loading';
         let errorMessage = '';
+        let editingOriginal = null;
 
         function createTaskCard(task) {
             const card = document.createElement('article');
@@ -462,9 +501,18 @@
             editButton.textContent = 'Edit';
             editButton.addEventListener('click', () => openTaskModal('edit', task));
 
+            const tagRow = document.createElement('div');
+            tagRow.className = 'card-tags';
+            (task.tags || []).forEach((tag) => {
+                const tagPill = document.createElement('span');
+                tagPill.className = 'tag-pill';
+                tagPill.textContent = String(tag);
+                tagRow.append(tagPill);
+            });
+
             footer.append(footerAssignee, editButton);
             const content = document.createElement('div');
-            content.append(title, description);
+            content.append(title, description, tagRow);
             card.append(content, meta, footer);
 
             card.addEventListener('dragstart', (ev) => {
@@ -527,6 +575,19 @@
             return document.getElementById(id);
         }
 
+        function formatApiError(detail) {
+            if (typeof detail === 'string') return detail;
+            if (Array.isArray(detail)) {
+                return detail
+                    .map((item) => (typeof item === 'string' ? item : item?.msg ?? JSON.stringify(item)))
+                    .join('; ');
+            }
+            if (detail && typeof detail === 'object') {
+                return detail.msg ?? JSON.stringify(detail);
+            }
+            return 'Validation error';
+        }
+
         function setModalError(message) {
             const banner = getEl('modal-error');
             if (banner) {
@@ -543,6 +604,8 @@
             }
             const titleError = getEl('title-error');
             if (titleError) titleError.textContent = '';
+            const tagsError = getEl('tags-error');
+            if (tagsError) tagsError.textContent = '';
         }
 
         function clearTaskForm() {
@@ -554,6 +617,8 @@
             if (status) status.value = 'ToDo';
             const priority = getEl('priority-input');
             if (priority) priority.value = 'Medium';
+            const tags = getEl('tags-input');
+            if (tags) tags.value = '';
         }
 
         function openTaskModal(mode, task = null) {
@@ -567,21 +632,32 @@
             const priority = getEl('priority-input');
             const description = getEl('description-input');
             const assignee = getEl('assignee-input');
+            const tags = getEl('tags-input');
 
-            if (!modal || !title || !submit || !status || !priority || !description || !assignee || !taskId) {
+            if (!modal || !title || !submit || !status || !priority || !description || !assignee || !taskId || !tags) {
                 return;
             }
 
             if (mode === 'edit' && task) {
+                editingOriginal = {
+                    title: String(task.title ?? ''),
+                    description: String(task.description ?? ''),
+                    status: String(task.status ?? 'ToDo'),
+                    priority: String(task.priority ?? 'Medium'),
+                    assignee: task.assignee == null ? null : String(task.assignee),
+                    tags: Array.isArray(task.tags) ? task.tags.map((tag) => String(tag)) : [],
+                };
                 title.textContent = 'Edit Task';
                 submit.textContent = 'Save';
                 taskId.value = String(task.id ?? '');
-                getEl('title-input').value = String(task.title ?? '');
-                description.value = String(task.description ?? '');
-                status.value = String(task.status ?? 'ToDo');
-                priority.value = String(task.priority ?? 'Medium');
-                assignee.value = String(task.assignee ?? '');
+                getEl('title-input').value = editingOriginal.title;
+                description.value = editingOriginal.description;
+                status.value = editingOriginal.status;
+                priority.value = editingOriginal.priority;
+                assignee.value = editingOriginal.assignee ?? '';
+                tags.value = editingOriginal.tags.join(', ');
             } else {
+                editingOriginal = null;
                 title.textContent = 'New Task';
                 submit.textContent = 'Create';
                 taskId.value = '';
@@ -590,6 +666,7 @@
                 status.value = 'ToDo';
                 priority.value = 'Medium';
                 assignee.value = '';
+                tags.value = '';
             }
 
             modal.classList.remove('hidden');
@@ -603,6 +680,7 @@
                 modal.classList.add('hidden');
                 modal.setAttribute('aria-hidden', 'true');
             }
+            editingOriginal = null;
             clearModalErrors();
             clearTaskForm();
         }
@@ -615,9 +693,10 @@
             const statusInput = getEl('status-input');
             const priorityInput = getEl('priority-input');
             const assigneeInput = getEl('assignee-input');
+            const tagsInput = getEl('tags-input');
             const taskIdInput = getEl('task-id');
 
-            if (!titleInput || !descriptionInput || !statusInput || !priorityInput || !assigneeInput || !taskIdInput) {
+            if (!titleInput || !descriptionInput || !statusInput || !priorityInput || !assigneeInput || !tagsInput || !taskIdInput) {
                 setModalError('Form is unavailable');
                 return;
             }
@@ -630,15 +709,57 @@
                 return;
             }
 
-            const payload = {
-                title,
-                description: descriptionInput.value.trim(),
-                status: statusInput.value,
-                priority: priorityInput.value,
-                assignee: assigneeInput.value.trim() || null,
-            };
+            const tags = tagsInput.value
+                .split(',')
+                .map((tag) => tag.trim())
+                .filter(Boolean)
+                .map((tag) => tag.toLowerCase());
 
             const id = taskIdInput.value.trim();
+            const description = descriptionInput.value.trim();
+            const status = statusInput.value;
+            const priority = priorityInput.value;
+            const assignee = assigneeInput.value.trim() || null;
+
+            let payload;
+            if (!id) {
+                if (tags.length === 0) {
+                    const tagsError = getEl('tags-error');
+                    if (tagsError) tagsError.textContent = 'At least one tag is required';
+                    tagsInput.focus();
+                    return;
+                }
+                payload = { title, description, status, priority, assignee, tags };
+            } else {
+                // PATCH: send only changed fields so unchanged status is not rejected as ToDo->ToDo etc.
+                payload = {};
+                const original = editingOriginal || {};
+                if (title !== String(original.title ?? '')) payload.title = title;
+                if (description !== String(original.description ?? '')) payload.description = description;
+                if (status !== String(original.status ?? '')) payload.status = status;
+                if (priority !== String(original.priority ?? '')) payload.priority = priority;
+                if (assignee !== (original.assignee ?? null)) payload.assignee = assignee;
+
+                const originalTags = (original.tags || []).map((tag) => String(tag).toLowerCase());
+                const tagsChanged =
+                    tags.length !== originalTags.length ||
+                    tags.some((tag, index) => tag !== originalTags[index]);
+                if (tagsChanged) {
+                    if (tags.length === 0) {
+                        const tagsError = getEl('tags-error');
+                        if (tagsError) tagsError.textContent = 'At least one tag is required';
+                        tagsInput.focus();
+                        return;
+                    }
+                    payload.tags = tags;
+                }
+
+                if (Object.keys(payload).length === 0) {
+                    closeTaskModal();
+                    return;
+                }
+            }
+
             const url = id ? `${TASKS_ENDPOINT}/${encodeURIComponent(id)}` : TASKS_ENDPOINT;
             const method = id ? 'PATCH' : 'POST';
 
@@ -651,7 +772,7 @@
 
                 if (response.status === 422) {
                     const body = await response.json().catch(() => null);
-                    setModalError(body?.detail ?? 'Validation error');
+                    setModalError(formatApiError(body?.detail));
                     return;
                 }
 
@@ -731,7 +852,12 @@
             renderBoard([]);
 
             try {
-                const response = await fetch(TASKS_ENDPOINT);
+                const tag = (getEl('tag-filter')?.value || '').trim().toLowerCase();
+                const url = tag
+                    ? `${TASKS_ENDPOINT}?tag=${encodeURIComponent(tag)}`
+                    : TASKS_ENDPOINT;
+
+                const response = await fetch(url);
                 if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
                 const data = await response.json();
                 tasks = Array.isArray(data) ? data : [];
@@ -748,6 +874,14 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             getEl('new-task-btn')?.addEventListener('click', () => openTaskModal('create'));
+            getEl('tag-filter')?.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') fetchTasks();
+            });
+            getEl('tag-filter-clear')?.addEventListener('click', () => {
+                const input = getEl('tag-filter');
+                if (input) input.value = '';
+                fetchTasks();
+            });
             getEl('modal-close')?.addEventListener('click', closeTaskModal);
             getEl('modal-cancel')?.addEventListener('click', closeTaskModal);
             getEl('task-form')?.addEventListener('submit', submitTaskForm);
