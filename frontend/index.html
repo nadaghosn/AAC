@@ -12,9 +12,9 @@
             --surface-border-strong: #d1d5db;
             --text: #111827;
             --muted: #6b7280;
-            --primary: #1d4ed8;
-            --primary-soft: #e0e7ff;
-            --primary-soft-hover: #c7d2fe;
+            --primary: #047857;
+            --primary-soft: #d1fae5;
+            --primary-soft-hover: #86efac;
             --error-bg: #fee2e2;
             --error-border: #fca5a5;
             --error-text: #991b1b;
@@ -188,6 +188,25 @@
 
         .button-edit:hover {
             background: var(--primary-soft-hover);
+        }
+
+        .button-delete {
+            border: none;
+            background: #fef9c3;
+            color: #a16207;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.65rem;
+            cursor: pointer;
+        }
+
+        .button-delete:hover {
+            background: #fde68a;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
         }
 
         .header-inner {
@@ -501,6 +520,17 @@
             editButton.textContent = 'Edit';
             editButton.addEventListener('click', () => openTaskModal('edit', task));
 
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'button-delete';
+            deleteButton.type = 'button';
+            deleteButton.textContent = 'Delete';
+            deleteButton.addEventListener('click', async (ev) => {
+                ev.stopPropagation();
+                const ok = confirm(`Delete "${task.title ?? 'this task'}"?`);
+                if (!ok) return;
+                await deleteTask(task.id);
+            });
+
             const tagRow = document.createElement('div');
             tagRow.className = 'card-tags';
             (task.tags || []).forEach((tag) => {
@@ -510,7 +540,11 @@
                 tagRow.append(tagPill);
             });
 
-            footer.append(footerAssignee, editButton);
+            const actions = document.createElement('div');
+            actions.className = 'card-actions';
+            actions.append(editButton, deleteButton);
+
+            footer.append(footerAssignee, actions);
             const content = document.createElement('div');
             content.append(title, description, tagRow);
             card.append(content, meta, footer);
@@ -869,6 +903,29 @@
                 console.error('Failed to load tasks:', error);
             } finally {
                 renderBoard(tasks);
+            }
+        }
+
+        async function deleteTask(taskId) {
+            try {
+                const response = await fetch(
+                    `${TASKS_ENDPOINT}/${encodeURIComponent(taskId)}`,
+                    { method: 'DELETE' }
+                );
+
+                if (response.status === 404) {
+                    alert('Task not found (it may already be deleted).');
+                    fetchTasks();
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Delete failed with status ${response.status}`);
+                }
+
+                fetchTasks();
+            } catch (error) {
+                alert(error instanceof Error ? error.message : 'Unable to delete task');
             }
         }
 
