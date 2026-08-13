@@ -1,13 +1,13 @@
 Prompt-log
 
-# A Selected feature: Tags/labels (required feature) ##################################
+# 1 Selected feature: Tags/labels (required feature) ##################################
 
-## PROMPT A.1 Lightweight architecture proposals
+## 1.1 PROMPT lightweight architecture proposals
 
-### A.1 - Weak prompt
+### 1.1.1 - Weak prompt
 write 2 proposals for lightweight architecture.
 
-### A.1 - Prompt for light weight architecture proposals – using ChatGPT
+### 1.1.2 - Structured prompt for light weight architecture proposals – using ChatGPT
 Context:
 I am adding tags/labels to a Task Tracker application with a Python/FastAPI backend and a simple web frontend.
 
@@ -22,12 +22,10 @@ Constraints:
 -	No authentication or multi-tenancy.
 -	Do not suggest microservices, Docker, cloud deployment, or production database setup.
 
-
 Task:
 Propose two different lightweight architectures:
 -	Option A should be the simplest local-storage approach appropriate for a first learning project.
 -	Option B may use a lightweight local database approach if it improves realism without overcomplicating the project.
-
 
 For each option, provide:
 1.	Tech stack and data storage choice
@@ -35,12 +33,10 @@ For each option, provide:
 3.	Data model sketch with Pydantic fields and constraints
 4.	Three trade-offs compared to the other option
 
-
 Output format:
 Return Option A and Option B in clearly separated sections using a table. Do not choose for me.
-
  
-### A.1 - Agent output: Proposal from ChatGPT
+### 1.1.3 - Agent output: Proposal from ChatGPT
 frontend, while enforcing the tag rules in Pydantic and the API/service layer.
 Option A — JSON File Local Storage
 Area	Proposal
@@ -84,17 +80,17 @@ Frontend	HTML/CSS/JS	HTML/CSS/JS
 Complexity	Lowest	Low
 Both options can implement TAG-002 through TAG-005 without introducing unnecessary architecture. The key validation rule should be centralized in Pydantic/service logic: every task must have at least one non-blank, non-duplicate tag, so TAG-004 cannot accidentally leave a task with an empty tag field.
 
-### A.1 - Summary and my decision
+### 1.1.4 - Summary and my decision
 The agent proposed 2 options of architecture designs with comparison in terms of learning difficulty, setup, external database server, querying, database concepts learned, complexity… 
 
 I selected the option A.
 
-## PROMPT A.2 - Revise models.py and storage.py
+## 1.2 PROMPT - Revise models.py and storage.py
 
-## A.2 - Weak prompt
+### 1.2.1 - Weak prompt
 Update the models.py and the storage.py
 
-## A.2 - Prompt to revise the models.py and the storage.py using Claude
+### 1.2.2 - Structured prompt to revise the models.py and the storage.py using Claude
 You are a senior Python backend engineer. Adapt the TWO files for a FastAPI Task Tracker REST API.
 
 Revise the 2 files app/models.py and app/storage.py in order to add needed tag/labels for each task. I need only the codes related to tag.
@@ -175,7 +171,7 @@ HARD CONSTRAINTS:
 Output only two code blocks, each preceded by: # FILE: app/models.py FILE: app/storage.py
 
 
-## A.2 - Agent output from Claude
+### 1.2.3 - Agent output from Claude
 Here's just the tag-related code:
 app/models.py — tag-related code
 
@@ -249,18 +245,18 @@ def get_all_tasks(
 update_task has no tag-specific code — tags flow through the same generic payload.model_dump(exclude_unset=True) merge as every other field.
 Reminder: as flagged last turn, TAG-002's 404-on-missing-task and TAG-004's "can't remove the last tag" rule are route-layer concerns not covered by this model/storage code alone.
 
-## A.2 - Summary and my decision
+### 1.2.4 - Summary and my decision
 The agent proposed the needed modifications in the py files. For the models.py, there was need to create def_normalize_tags, and to update TaskCreate, TaskUpdate, and TaskResponse. For the storage.py, there was need to update the get_all_tasks.  
 
 I read the content and approved it.
 
 
-## PROMPT A.3 - Revise verify_a.py
+## 1.3 - PROMPT - Revise verify_a.py
 
-## A.3 - Weak prompt
+### 1.3.1 - Weak prompt
 Update the verify_a.py
 
-## A.3 - Prompt to revise the verify_a.py – using Claude
+### 1.3.2 - Structured prompt to revise the verify_a.py – using Claude
 You are a senior Python backend engineer.
 
 Revise the file verify_a.py to add 2 tests related to validate trimmed non-empty tag values. 
@@ -280,7 +276,7 @@ Context:
 << >>
 
 
-## A.3 - Agent output
+### 1.3.3 - Agent output
 9. Blank tag value rejected
 expect_fail("blank tag value rejected", lambda: TaskCreate(title="x", tags=["valid", "  "]))
 
@@ -292,18 +288,18 @@ def _ok_tags_normalized():
 expect_ok("tags trimmed, lowercased, and de-duplicated", _ok_tags_normalized)
 
 
-## A.3 - Summary and my decision
+### 1.3.4 - Summary and my decision
 The agent suggested 2 additional tests: one related to rejection of blank tag, and one to tag normalization.
 
 I read the new tests and added them to the verify_a.py
 
 
-## PROMPT A.4 - Test and debug – using VS code
+## 1.4 - PROMPT to test and debug – using VS code
 
-## A.4 - Weak prompt
+### 1.4.1 - Weak prompt
 Write edge cases
 
-## A.4 - Prompt to test and debug – using VS code
+### 1.4.2 - Structured prompt to test and debug – using VS code
 Read the selected PATCH /tasks/{id} tests in tests/test_tasks.py.
 
 Identify edge cases that are not currently covered related to tags. List exactly 5 scenarios. Context:
@@ -321,7 +317,7 @@ Constraints:
 -	Do not suggest race conditions, SQL injection, authentication, permissions, or production database behavior.
 -	Keep the scenarios realistic for this learning-project FastAPI backend.
 
-## A.4 - Agent output
+### 1.4.3 - Agent output
 Reading the PATCH `/tasks/{id}` test section now to identify missing tag-related edge cases.
 
 Searched for regex `PATCH /tasks/{id}|patch\(|patch_tasks|PATCH .*tasks|update task|tags` (`**/tests/test_tasks.py`), 54 results
@@ -352,8 +348,315 @@ Why it matters: tag arrays with mixed types can arise from malformed JSON and sh
 Category: validation Expected status: 422  
 Why it matters: an empty tag payload is a realistic malformed update flow from the modal and should be rejected rather than silently accepted.
 
-## A.4 - Summary and my decision
+### 1.4.4 - Summary and my decision
 The agent suggested 5 tests. 
 
 The tests were similar : (1) = (5), (2) = (4) and similar to the ones in test test_tasks.py. I rejected them and used the ones in test_tasks.py. 
 
+
+
+
+# 2 Selected feature: task comments (required feature) ##################################
+
+## 2.1 - PROMPT to update models.py and storage.py
+
+### 2.1.1 - Weak prompt
+Update the files models.py and storage.py
+
+
+### 2.1.2 - Structured prompt to update models.py and storage.py
+You are a senior Python backend engineer. Adapt the TWO files for a FastAPI Task Tracker REST API.
+Revise the 2 files app/models.py and app/storage.py in order to add needed task comment for each task.
+Context:
+-	Support list/add/delete behavior
+-	Non-blank text validation
+-	Not-found handling
+-	User stories:
+<<  >> 
+HARD CONSTRAINTS:
+-	DO NOT use SQLAlchemy, SQLModel, Alembic, a database, or an ORM.
+-	DO NOT use Pydantic v1 syntax: no @validator, no class Config, no .dict().
+-	DO NOT include id, created_at, or updated_at in TaskCreate or TaskUpdate.
+-	DO NOT add print or logging statements.
+-	DO NOT create API routes in this step.
+-	DO NOT wrap the answer in long explanation.
+-	DO NOT change the code.  I need to check it before accepting the changes.
+-	Suggest only the codes related to task comment
+
+### 2.1.3 - Agent outputs
+For  `app/models.py` — comment-only additions
+
+def _normalize_comment_text(value: str) -> str:
+    stripped = value.strip()
+    if not stripped:
+        raise ValueError("comment text must not be blank")
+    return stripped
+
+class CommentCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str
+
+    @field_validator("text")
+    @classmethod
+    def validate_text(cls, value: str) -> str:
+        return _normalize_comment_text(value)
+
+class CommentUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str
+
+    @field_validator("text")
+    @classmethod
+    def validate_text(cls, value: str) -> str:
+        return _normalize_comment_text(value)
+
+class CommentResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str
+    created_at: datetime
+
+On existing `TaskResponse`, add:
+    python
+comment: Optional[CommentResponse] = None
+
+---
+
+For `app/storage.py` — comment-only additions
+
+In `add_task`, include:
+
+python
+comment=None,
+
+python
+from app.models import CommentCreate, CommentResponse, CommentUpdate
+
+def get_comment(task_id: str) -> tuple[bool, Optional[CommentResponse]]:
+    # (False, None) => task not found
+    # (True, None)  => task found, no comment
+    # (True, comment) => task found with comment
+    task = _tasks.get(task_id)
+    if task is None:
+        return False, None
+    return True, task.comment
+
+def add_comment(task_id: str, payload: CommentCreate) -> Optional[CommentResponse]:
+    # None => task not found (404)
+    # ValueError => second comment (422)
+    task = _tasks.get(task_id)
+    if task is None:
+        return None
+    if task.comment is not None:
+        raise ValueError("task already has a comment")
+
+    comment = CommentResponse(
+        text=payload.text,
+        created_at=datetime.now(timezone.utc),
+    )
+    _tasks[task_id] = task.model_copy(
+        update={"comment": comment, "updated_at": datetime.now(timezone.utc)}
+    )
+    return comment
+
+def update_comment(task_id: str, payload: CommentUpdate) -> Optional[CommentResponse]:
+    # None => task not found OR no comment (404)
+    task = _tasks.get(task_id)
+    if task is None or task.comment is None:
+        return None
+
+    comment = CommentResponse(
+        text=payload.text,
+        created_at=task.comment.created_at,
+    )
+    _tasks[task_id] = task.model_copy(
+        update={"comment": comment, "updated_at": datetime.now(timezone.utc)}
+    )
+    return comment
+
+def replace_comment(task_id: str, payload: CommentUpdate) -> Optional[CommentResponse]:
+    # Updates existing comment text in place (still one comment).
+    # None => task not found (404)
+    task = _tasks.get(task_id)
+    if task is None:
+        return None
+    if task.comment is None:
+        return None
+
+    comment = CommentResponse(
+        text=payload.text,
+        created_at=task.comment.created_at,
+    )
+    _tasks[task_id] = task.model_copy(
+        update={"comment": comment, "updated_at": datetime.now(timezone.utc)}
+    )
+    return comment
+
+def delete_comment(task_id: str) -> bool:
+    # False => task not found OR no comment (404)
+    task = _tasks.get(task_id)
+    if task is None or task.comment is None:
+        return False
+
+    _tasks[task_id] = task.model_copy(
+        update={"comment": None, "updated_at": datetime.now(timezone.utc)}
+    )
+    return True
+
+No files were modified.
+
+### 2.1.4 - Summary and my decision
+The agent suggested to add functions, classes, install libraries.
+I accepted them.
+
+## 2.2 - PROMPT to to update the CRUD endpoints
+
+### 2.2.1 - Weak prompt
+Update the CRUD endpoints if needed
+
+### 2.2.2 - Structured prompt to update the CRUD endpoints
+You are a senior Python backend engineer.
+Revise the CRUD endpoints and suggest code needed for task comment. 
+Context:
+-	Support list/add/delete behavior
+-	Non-blank text validation
+-	Not-found handling
+-	User stories:
+<<  >> 
+HARD CONSTRAINTS:
+-	DO NOT wrap the answer in long explanation.
+-	DO NOT change the code.  I need to check it before accepting the changes.
+-	Suggest only the codes related to task comment
+
+### 2.2.3 - Agent outputs
+For `app/main.py` — comment-only additions
+Update imports:
+python
+from app.models import (
+    CommentCreate,
+    CommentResponse,
+    CommentUpdate,
+    TaskCreate,
+    TaskPriority,
+    TaskResponse,
+    TaskStatus,
+    TaskUpdate,
+)
+
+Add routes:
+
+@app.post(
+    "/tasks/{task_id}/comments",
+    response_model=CommentResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["comments"],
+)
+def create_comment(task_id: str, payload: CommentCreate) -> CommentResponse:
+    try:
+        comment = storage.add_comment(task_id, payload)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    if comment is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task with id {task_id} not found",
+        )
+    return comment
+
+@app.get(
+    "/tasks/{task_id}/comments",
+    response_model=Optional[CommentResponse],
+    tags=["comments"],
+)
+def read_comment(task_id: str) -> Optional[CommentResponse]:
+    exists, comment = storage.get_comment(task_id)
+    if not exists:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task with id {task_id} not found",
+        )
+    return comment
+
+@app.patch(
+    "/tasks/{task_id}/comments",
+    response_model=CommentResponse,
+    tags=["comments"],
+)
+def patch_comment(task_id: str, payload: CommentUpdate) -> CommentResponse:
+    comment = storage.update_comment(task_id, payload)
+    if comment is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Comment for task id {task_id} not found",
+        )
+    return comment
+
+@app.put(
+    "/tasks/{task_id}/comments",
+    response_model=CommentResponse,
+    tags=["comments"],
+)
+def put_comment(task_id: str, payload: CommentUpdate) -> CommentResponse:
+    comment = storage.replace_comment(task_id, payload)
+    if comment is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Comment for task id {task_id} not found",
+        )
+    return comment
+
+@app.delete(
+    "/tasks/{task_id}/comments",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["comments"],
+)
+def remove_comment(task_id: str) -> None:
+    deleted = storage.delete_comment(task_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Comment for task id {task_id} not found",
+        )
+
+No files were modified.
+
+### 2.2.4 - Summary and my decision
+The agents suggested to add and update functions related to the task comment.
+I approved them.
+
+
+## 2.3 - PROMPT to generate test based on cases
+
+### 2.3.1 - Weak prompt
+Write a test related to task comment.
+
+### 2.3.2 - Structured prompt to generate test based on cases
+Write ONE pytest test for this Task Tracker scenario:
+<< >> 
+Requirements:
+-	Use the existing FastAPI TestClient pattern from tests/test_tasks.py.
+-	Use the same fixture style as the existing tests.
+-	Name the test function so it describes the scenario exactly.
+-	Arrange required data through API calls, such as POST /tasks.
+-	Act with one PATCH /tasks/{id} request for the scenario.
+-	Assert both the HTTP status code and the relevant response body field or detail message.
+-	If the scenario is invalid input, assert that the response communicates the validation or business-rule failure.
+Constraints:
+-	Return only the test function.
+Do not add imports unless the existing file truly lacks them.
+-	Do not modify app code.
+-	Do not write multiple tests in one answer.
+
+
+### 2.3.3 - Agent outputs
+test_patch_comment_not_found_returns_404 
+test_patch_status_keeps_comment_unchanged 
+
+### 2.3.4 - Summary and my decision
+The agent suggested the tests.
+I approved them and asked the agent to add them into the test_tasks.py

@@ -2,7 +2,16 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
 
-from app.models import TaskCreate, TaskPriority, TaskResponse, TaskStatus, TaskUpdate
+from app.models import (
+    CommentCreate,
+    CommentResponse,
+    CommentUpdate,
+    TaskCreate,
+    TaskPriority,
+    TaskResponse,
+    TaskStatus,
+    TaskUpdate,
+)
 
 _tasks: dict[str, TaskResponse] = {}
 
@@ -17,6 +26,7 @@ def add_task(payload: TaskCreate) -> TaskResponse:
         priority=payload.priority,
         assignee=payload.assignee,
         tags=payload.tags,
+        comment=CommentResponse(text=payload.comment, created_at=now),
         created_at=now,
         updated_at=now,
     )
@@ -65,6 +75,69 @@ def delete_task(task_id: str) -> bool:
         return False
     del _tasks[task_id]
     return True
+
+
+def get_comment(task_id: str) -> tuple[bool, Optional[CommentResponse]]:
+    task = _tasks.get(task_id)
+    if task is None:
+        return False, None
+    return True, task.comment
+
+
+def add_comment(task_id: str, payload: CommentCreate) -> Optional[CommentResponse]:
+    task = _tasks.get(task_id)
+    if task is None:
+        return None
+    if task.comment is not None:
+        raise ValueError("task already has a comment")
+
+    comment = CommentResponse(
+        text=payload.text,
+        created_at=datetime.now(timezone.utc),
+    )
+    _tasks[task_id] = task.model_copy(
+        update={"comment": comment, "updated_at": datetime.now(timezone.utc)}
+    )
+    return comment
+
+
+def update_comment(task_id: str, payload: CommentUpdate) -> Optional[CommentResponse]:
+    task = _tasks.get(task_id)
+    if task is None or task.comment is None:
+        return None
+
+    comment = CommentResponse(
+        text=payload.text,
+        created_at=task.comment.created_at,
+    )
+    _tasks[task_id] = task.model_copy(
+        update={"comment": comment, "updated_at": datetime.now(timezone.utc)}
+    )
+    return comment
+
+
+def replace_comment(task_id: str, payload: CommentUpdate) -> Optional[CommentResponse]:
+    task = _tasks.get(task_id)
+    if task is None:
+        return None
+    if task.comment is None:
+        return None
+
+    comment = CommentResponse(
+        text=payload.text,
+        created_at=task.comment.created_at,
+    )
+    _tasks[task_id] = task.model_copy(
+        update={"comment": comment, "updated_at": datetime.now(timezone.utc)}
+    )
+    return comment
+
+
+def delete_comment(task_id: str) -> bool:
+    task = _tasks.get(task_id)
+    if task is None:
+        return False
+    raise ValueError("comment is required and cannot be removed")
 
 
 def _reset() -> None:

@@ -9,12 +9,19 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import storage
-from app.models import TaskCreate, TaskResponse
 from app.schemas import HealthResponse
-from app.models import TaskStatus, TaskPriority
+from app.models import (
+    CommentCreate,
+    CommentResponse,
+    CommentUpdate,
+    TaskCreate,
+    TaskPriority,
+    TaskResponse,
+    TaskStatus,
+    TaskUpdate,
+)
 from typing import Optional
 
-from app.models import TaskUpdate  # add to existing models import
 from app.business_rules import validate_status_transition
 
 # Load variables from .env into the process environment (e.g. PORT, APP_ENV).
@@ -96,4 +103,96 @@ def delete_task(task_id: str) -> None:
         raise HTTPException(
             status_code=404,
             detail=f"Task with id {task_id} not found",
+        )
+
+
+@app.post(
+    "/tasks/{task_id}/comments",
+    response_model=CommentResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["comments"],
+)
+def create_comment(task_id: str, payload: CommentCreate) -> CommentResponse:
+    try:
+        comment = storage.add_comment(task_id, payload)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    if comment is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task with id {task_id} not found",
+        )
+    return comment
+
+
+@app.get(
+    "/tasks/{task_id}/comments",
+    response_model=CommentResponse,
+    tags=["comments"],
+)
+def read_comment(task_id: str) -> CommentResponse:
+    exists, comment = storage.get_comment(task_id)
+    if not exists:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task with id {task_id} not found",
+        )
+    if comment is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Comment for task id {task_id} not found",
+        )
+    return comment
+
+
+@app.patch(
+    "/tasks/{task_id}/comments",
+    response_model=CommentResponse,
+    tags=["comments"],
+)
+def patch_comment(task_id: str, payload: CommentUpdate) -> CommentResponse:
+    comment = storage.update_comment(task_id, payload)
+    if comment is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Comment for task id {task_id} not found",
+        )
+    return comment
+
+
+@app.put(
+    "/tasks/{task_id}/comments",
+    response_model=CommentResponse,
+    tags=["comments"],
+)
+def put_comment(task_id: str, payload: CommentUpdate) -> CommentResponse:
+    comment = storage.replace_comment(task_id, payload)
+    if comment is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Comment for task id {task_id} not found",
+        )
+    return comment
+
+
+@app.delete(
+    "/tasks/{task_id}/comments",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["comments"],
+)
+def remove_comment(task_id: str) -> None:
+    try:
+        deleted = storage.delete_comment(task_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Comment for task id {task_id} not found",
         )

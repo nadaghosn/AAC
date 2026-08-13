@@ -25,6 +25,14 @@ def _normalize_tags(value) -> List[str]:
     return normalized
 
 
+def _normalize_comment_text(value: str) -> str:
+    stripped = value.strip()
+    if not stripped:
+        raise ValueError("comment text must not be blank")
+    return stripped
+    
+
+
 class TaskStatus(str, Enum):
     TODO = "ToDo"
     IN_PROGRESS = "InProgress"
@@ -37,6 +45,35 @@ class TaskPriority(str, Enum):
     HIGH = "High"
 
 
+class CommentCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str
+
+    @field_validator("text")
+    @classmethod
+    def validate_text(cls, value: str) -> str:
+        return _normalize_comment_text(value)
+
+
+class CommentUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str
+
+    @field_validator("text")
+    @classmethod
+    def validate_text(cls, value: str) -> str:
+        return _normalize_comment_text(value)
+
+
+class CommentResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str
+    created_at: datetime
+
+
 class TaskCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -46,7 +83,7 @@ class TaskCreate(BaseModel):
     priority: TaskPriority = TaskPriority.MEDIUM
     assignee: Optional[str] = None
     tags: List[str]
-    
+    comment: str
 
     @field_validator("title")
     @classmethod
@@ -65,6 +102,11 @@ class TaskCreate(BaseModel):
         if not normalized:
             raise ValueError("tags must contain at least one tag")
         return normalized
+
+    @field_validator("comment")
+    @classmethod
+    def validate_comment(cls, value: str) -> str:
+        return _normalize_comment_text(value)
 
 
 class TaskUpdate(BaseModel):
@@ -110,5 +152,6 @@ class TaskResponse(BaseModel):
     priority: TaskPriority
     assignee: Optional[str]
     tags: List[str]
+    comment: CommentResponse
     created_at: datetime
     updated_at: datetime

@@ -28,7 +28,11 @@ def client():
 def created_task(client):
     response = client.post(
         "/tasks",
-        json={"title": "fixture task", "tags": ["general"]},
+        json={
+            "title": "fixture task",
+            "tags": ["general"],
+            "comment": "fixture comment",
+        },
     )
     assert response.status_code == 201
     return response.json()
