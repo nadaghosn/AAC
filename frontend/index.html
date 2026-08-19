@@ -459,12 +459,12 @@
                 </div>
                 <div class="modal-field">
                     <label for="tags-input">Tags</label>
-                    <input id="tags-input" name="tags" type="text" placeholder="Enter tags separated by commas" />
+                    <input id="tags-input" name="tags" type="text" placeholder="Optional tags, separated by commas" />
                     <div id="tags-error" class="field-error"></div>
                 </div>
                 <div class="modal-field">
                     <label for="comment-input">Comment</label>
-                    <textarea id="comment-input" name="comment" placeholder="Add a comment..."></textarea>
+                    <textarea id="comment-input" name="comment" placeholder="Optional comment"></textarea>
                     <div id="comment-error" class="field-error"></div>
                 </div>
                 <div class="modal-actions">
@@ -761,12 +761,6 @@
             }
 
             const comment = commentInput.value.trim();
-            if (!comment) {
-                const commentError = getEl('comment-error');
-                if (commentError) commentError.textContent = 'Comment is required';
-                commentInput.focus();
-                return;
-            }
 
             const tags = tagsInput.value
                 .split(',')
@@ -783,13 +777,9 @@
             let payload;
             let commentChanged = false;
             if (!id) {
-                if (tags.length === 0) {
-                    const tagsError = getEl('tags-error');
-                    if (tagsError) tagsError.textContent = 'At least one tag is required';
-                    tagsInput.focus();
-                    return;
-                }
-                payload = { title, description, status, priority, assignee, tags, comment };
+                // Option A: omit blank comment so API stores null; empty tags OK.
+                payload = { title, description, status, priority, assignee, tags };
+                if (comment) payload.comment = comment;
             } else {
                 // PATCH task: only task fields (comment is updated via /comments)
                 payload = {};
@@ -806,12 +796,6 @@
                     tags.length !== originalTags.length ||
                     tags.some((tag, index) => tag !== originalTags[index]);
                 if (tagsChanged) {
-                    if (tags.length === 0) {
-                        const tagsError = getEl('tags-error');
-                        if (tagsError) tagsError.textContent = 'At least one tag is required';
-                        tagsInput.focus();
-                        return;
-                    }
                     payload.tags = tags;
                 }
 
@@ -844,23 +828,33 @@
                 }
 
                 if (id && commentChanged) {
-                    const commentResponse = await fetch(
-                        `${TASKS_ENDPOINT}/${encodeURIComponent(id)}/comments`,
-                        {
-                            method: 'PATCH',
+                    const originalComment = String((editingOriginal || {}).comment ?? '');
+                    const commentUrl = `${TASKS_ENDPOINT}/${encodeURIComponent(id)}/comments`;
+
+                    if (!comment && originalComment) {
+                        const commentResponse = await fetch(commentUrl, { method: 'DELETE' });
+                        if (commentResponse.status === 404) {
+                            // Already gone — OK for optional comments.
+                        } else if (!commentResponse.ok) {
+                            throw new Error(`Comment delete failed with status ${commentResponse.status}`);
+                        }
+                    } else if (comment) {
+                        const commentMethod = originalComment ? 'PATCH' : 'POST';
+                        const commentResponse = await fetch(commentUrl, {
+                            method: commentMethod,
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ text: comment }),
-                        },
-                    );
+                        });
 
-                    if (commentResponse.status === 422) {
-                        const body = await commentResponse.json().catch(() => null);
-                        setModalError(formatApiError(body?.detail));
-                        return;
-                    }
+                        if (commentResponse.status === 422) {
+                            const body = await commentResponse.json().catch(() => null);
+                            setModalError(formatApiError(body?.detail));
+                            return;
+                        }
 
-                    if (!commentResponse.ok) {
-                        throw new Error(`Request failed with status ${commentResponse.status}`);
+                        if (!commentResponse.ok) {
+                            throw new Error(`Request failed with status ${commentResponse.status}`);
+                        }
                     }
                 }
 

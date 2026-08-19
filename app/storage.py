@@ -18,6 +18,11 @@ _tasks: dict[str, TaskResponse] = {}
 
 def add_task(payload: TaskCreate) -> TaskResponse:
     now = datetime.now(timezone.utc)
+    comment = (
+        CommentResponse(text=payload.comment, created_at=now)
+        if payload.comment is not None
+        else None
+    )
     task = TaskResponse(
         id=str(uuid4()),
         title=payload.title,
@@ -26,7 +31,7 @@ def add_task(payload: TaskCreate) -> TaskResponse:
         priority=payload.priority,
         assignee=payload.assignee,
         tags=payload.tags,
-        comment=CommentResponse(text=payload.comment, created_at=now),
+        comment=comment,
         created_at=now,
         updated_at=now,
     )
@@ -63,9 +68,14 @@ def update_task(task_id: str, payload: TaskUpdate) -> Optional[TaskResponse]:
     if not updates:
         return existing
 
+    # Defense in depth: title must never be cleared on update.
+    if "title" in updates and updates["title"] is None:
+        raise ValueError("title is required")
+
     updated = existing.model_copy(
         update={**updates, "updated_at": datetime.now(timezone.utc)}
     )
+    updated = TaskResponse.model_validate(updated.model_dump())
     _tasks[task_id] = updated
     return updated
 
@@ -137,7 +147,12 @@ def delete_comment(task_id: str) -> bool:
     task = _tasks.get(task_id)
     if task is None:
         return False
-    raise ValueError("comment is required and cannot be removed")
+    if task.comment is None:
+        return False
+    _tasks[task_id] = task.model_copy(
+        update={"comment": None, "updated_at": datetime.now(timezone.utc)}
+    )
+    return True
 
 
 def _reset() -> None:

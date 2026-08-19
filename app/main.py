@@ -50,6 +50,33 @@ app.add_middleware(
 )
 
 
+@app.get("/", tags=["root"])
+def root() -> dict:
+    return {
+        "name": "Task Tracker API",
+        "docs": "/docs",
+        "health": "/health",
+        "tasks": "/tasks",
+    }
+
+
+@app.get("/json/version", tags=["root"])
+def json_version() -> dict:
+    # Satisfies common browser/extension probes that request /json/version.
+    return {
+        "name": app.title,
+        "version": app.version,
+    }
+
+
+@app.get("/health", response_model=HealthResponse, tags=["health"])
+def health() -> HealthResponse:
+    return HealthResponse(
+        status="ok",
+        timestamp=datetime.now(timezone.utc),
+    )
+
+
 @app.get("/tasks", response_model=list[TaskResponse], tags=["tasks"])
 def list_tasks(
     status: Optional[TaskStatus] = None,
@@ -87,7 +114,13 @@ def update_task(task_id: str, payload: TaskUpdate) -> TaskResponse:
             )
         validate_status_transition(existing.status, payload.status)
 
-    updated = storage.update_task(task_id, payload)
+    try:
+        updated = storage.update_task(task_id, payload)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
     if updated is None:
         raise HTTPException(
             status_code=404,
@@ -184,13 +217,12 @@ def put_comment(task_id: str, payload: CommentUpdate) -> CommentResponse:
     tags=["comments"],
 )
 def remove_comment(task_id: str) -> None:
-    try:
-        deleted = storage.delete_comment(task_id)
-    except ValueError as exc:
+    if storage.get_task_by_id(task_id) is None:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(exc),
-        ) from exc
+            status_code=404,
+            detail=f"Task with id {task_id} not found",
+        )
+    deleted = storage.delete_comment(task_id)
     if not deleted:
         raise HTTPException(
             status_code=404,

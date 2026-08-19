@@ -84,6 +84,20 @@ expect_fail(
     lambda: TaskUpdate(created_at="2025-01-01T00:00:00Z"),
 )
 
+# 7b. Explicit null title rejected on TaskUpdate (omit still allowed)
+expect_fail(
+    "null title rejected on TaskUpdate",
+    lambda: TaskUpdate.model_validate({"title": None}),
+)
+
+
+def _ok_omit_title_on_update():
+    u = TaskUpdate(priority=TaskPriority.LOW)
+    assert "title" not in u.model_dump(exclude_unset=True)
+
+
+expect_ok("omitted title allowed on TaskUpdate", _ok_omit_title_on_update)
+
 # 8. Invalid enum value rejected
 expect_fail(
     "invalid status rejected",
@@ -121,24 +135,45 @@ def _ok_comment_text():
 
 expect_ok("comment text accepted and trimmed", _ok_comment_text)
 
-# 13. Missing required comment on TaskCreate rejected
-expect_fail(
-    "missing comment on TaskCreate rejected",
-    lambda: TaskCreate(title="x", tags=["x"]),
-)
+# 13. Missing comment on TaskCreate allowed (optional)
+def _ok_missing_comment():
+    t = TaskCreate(title="x", tags=["x"])
+    assert t.comment is None
 
-# 14. Blank comment on TaskCreate rejected
-expect_fail(
-    "blank comment on TaskCreate rejected",
-    lambda: TaskCreate(title="x", tags=["x"], comment="   "),
-)
+
+expect_ok("missing comment allowed on TaskCreate", _ok_missing_comment)
+
+# 14. Blank comment on TaskCreate treated as no comment (Option A)
+def _ok_blank_comment():
+    t = TaskCreate(title="x", tags=["x"], comment="   ")
+    assert t.comment is None
+
+
+expect_ok("blank comment treated as None on TaskCreate", _ok_blank_comment)
 
 # 15. Comment on TaskCreate trimmed
 def _ok_task_comment_trimmed():
-    t = TaskCreate(title="x", tags=["x"], comment="  required note  ")
-    assert t.comment == "required note"
+    t = TaskCreate(title="x", tags=["x"], comment="  optional note  ")
+    assert t.comment == "optional note"
 
 
 expect_ok("task create comment trimmed", _ok_task_comment_trimmed)
+
+# 16. Missing tags on TaskCreate default to empty list
+def _ok_missing_tags():
+    t = TaskCreate(title="x")
+    assert t.tags == []
+    assert t.comment is None
+
+
+expect_ok("missing tags default to [] on TaskCreate", _ok_missing_tags)
+
+# 17. Empty tags allowed on TaskUpdate
+def _ok_empty_tags_update():
+    u = TaskUpdate(tags=[])
+    assert u.tags == []
+
+
+expect_ok("empty tags allowed on TaskUpdate", _ok_empty_tags_update)
 
 print("--- Part A verifications complete ---")

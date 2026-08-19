@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 def _normalize_tags(value) -> List[str]:
@@ -82,8 +82,8 @@ class TaskCreate(BaseModel):
     status: TaskStatus = TaskStatus.TODO
     priority: TaskPriority = TaskPriority.MEDIUM
     assignee: Optional[str] = None
-    tags: List[str]
-    comment: str
+    tags: List[str] = Field(default_factory=list)
+    comment: Optional[str] = None
 
     @field_validator("title")
     @classmethod
@@ -98,15 +98,17 @@ class TaskCreate(BaseModel):
     @field_validator("tags", mode="before")
     @classmethod
     def normalize_tags(cls, value):
-        normalized = _normalize_tags(value)
-        if not normalized:
-            raise ValueError("tags must contain at least one tag")
-        return normalized
+        return _normalize_tags(value)
 
-    @field_validator("comment")
+    @field_validator("comment", mode="before")
     @classmethod
-    def validate_comment(cls, value: str) -> str:
-        return _normalize_comment_text(value)
+    def validate_comment(cls, value):
+        # Option A: omit / null / blank / whitespace => no comment
+        if value is None:
+            return None
+        if isinstance(value, str) and not value.strip():
+            return None
+        return _normalize_comment_text(str(value))
 
 
 class TaskUpdate(BaseModel):
@@ -119,12 +121,14 @@ class TaskUpdate(BaseModel):
     assignee: Optional[str] = None
     tags: Optional[List[str]] = None
 
-    @field_validator("title")
+    @field_validator("title", mode="before")
     @classmethod
-    def validate_title(cls, value: Optional[str]) -> Optional[str]:
+    def validate_title(cls, value):
+        # Option A: omit title => no change; explicit null => rejected.
+        # Omitted fields use the default without running this validator.
         if value is None:
-            return value
-        stripped = value.strip()
+            raise ValueError("title is required")
+        stripped = str(value).strip()
         if not stripped:
             raise ValueError("title must not be blank")
         if len(stripped) > 200:
@@ -136,10 +140,7 @@ class TaskUpdate(BaseModel):
     def normalize_tags(cls, value):
         if value is None:
             return None
-        normalized = _normalize_tags(value)
-        if not normalized:
-            raise ValueError("tags must contain at least one tag")
-        return normalized
+        return _normalize_tags(value)
 
 
 class TaskResponse(BaseModel):
@@ -152,6 +153,6 @@ class TaskResponse(BaseModel):
     priority: TaskPriority
     assignee: Optional[str]
     tags: List[str]
-    comment: CommentResponse
+    comment: Optional[CommentResponse] = None
     created_at: datetime
     updated_at: datetime
