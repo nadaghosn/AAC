@@ -18,7 +18,7 @@ def _normalize_tags(value) -> List[str]:
     for item in raw_items:
         tag = str(item).strip().lower()
         if not tag:
-            raise ValueError("tags must not contain blank values")
+            continue  # blank / whitespace-only values are ignored
         if tag not in seen:
             seen.add(tag)
             normalized.append(tag)

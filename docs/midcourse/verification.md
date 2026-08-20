@@ -64,13 +64,13 @@ Re-run behavior-contract items:
 - 8: New Task and Edit modal flows still work, including title validation and dismissal
 
 ## 1.6 Break test 1	
-Test: pytest tests/test_tasks.py -k test_patch_blank_tag_returns_422 -v
+Test: pytest tests/test_tasks.py -k test_patch_blank_tags_are_ignored -v
 
 Testing before breaking: passed
 
-Breaking the code (returns 200) and testing after breaking: failed
+Breaking the code (returns 422) and testing after breaking: failed
 
-Restoring (returns 422) as initially: passed
+Restoring (returns 200) as initially: passed
 
 ## 1.7 Break test 2	
 Test: pytest tests/test_tasks.py -k test_patch_remove_only_tag_returns_422 -v

@@ -30,6 +30,9 @@ uvicorn app.main:app --reload --port 8000
 
 ```bash
 curl http://localhost:8000/health
+
+Better option: 
+Invoke-RestMethod http://127.0.0.1:8000/health
 ```
 
 Expected response:
@@ -43,3 +46,7 @@ Expected response:
 ## API docs
 
 Once running, open `http://localhost:8000/docs` for the Swagger UI.
+
+## Frontend
+cd frontend
+python -m http.server 5500 

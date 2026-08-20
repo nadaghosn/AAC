@@ -104,11 +104,15 @@ expect_fail(
     lambda: TaskCreate(title="x", tags=["x"], comment="c", status="Whatever"),
 )
 
-# 9. Blank tag value rejected
-expect_fail(
-    "blank tag value rejected",
-    lambda: TaskCreate(title="x", tags=["valid", "  "], comment="c"),
-)
+# 9. Blank tag values are ignored (not stored)
+def _ok_blank_tags_ignored():
+    t = TaskCreate(title="x", tags=["valid", "  ", ""], comment="c")
+    assert t.tags == ["valid"]
+    empty = TaskCreate(title="x", tags=["", "   "])
+    assert empty.tags == []
+
+
+expect_ok("blank tag values ignored", _ok_blank_tags_ignored)
 
 # 10. Tags trimmed and normalized (whitespace stripped, case-folded, duplicates removed)
 def _ok_tags_normalized():

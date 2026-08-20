@@ -409,24 +409,35 @@ def test_patch_adding_existing_tag_does_not_duplicate(client, created_task):
     assert response.json()["tags"] == ["general", "api"]
 
 
-def test_create_task_blank_tag_returns_422(client):
+def test_create_task_blank_tags_are_ignored(client):
     response = client.post(
         "/tasks",
         json={
             "title": "Blank tag",
-            "tags": ["valid", "  "],
+            "tags": ["valid", "  ", ""],
             "comment": "note",
         },
     )
-    assert response.status_code == 422
+    assert response.status_code == 201
+    assert response.json()["tags"] == ["valid"]
 
 
-def test_patch_blank_tag_returns_422(client, created_task):
+def test_patch_blank_tags_are_ignored(client, created_task):
     response = client.patch(
         f"/tasks/{created_task['id']}",
         json={"tags": ["ok", ""]},
     )
-    assert response.status_code == 422
+    assert response.status_code == 200
+    assert response.json()["tags"] == ["ok"]
+
+
+def test_create_task_only_blank_tags_becomes_empty_list(client):
+    response = client.post(
+        "/tasks",
+        json={"title": "Only blanks", "tags": ["", "   "]},
+    )
+    assert response.status_code == 201
+    assert response.json()["tags"] == []
 
 
 # --- Comments ---

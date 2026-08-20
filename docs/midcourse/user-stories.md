@@ -48,8 +48,7 @@ Story:
 As a team member, I want to remove a tag from a task so that outdated categories are no longer associated with it.
 Acceptance Criteria:
 •	A team member can remove an existing tag from a task.
-•	The removed tag no longer appears in the task's tag list.
-•	Other task tags remain unchanged.
+•	The removed tag no longer appears in the task's tag list. Other task tags remain unchanged.
 •	Removing a tag from a task that does not exist returns HTTP 404.
 ________________________________________
 ID: TAG-005
@@ -71,10 +70,11 @@ Acceptance Criteria:
 •	A blank tag search returns HTTP 422.
 
 ### Feature 1.3: needed correction
-TAG-004: to correct
-In story TAG-004, you mentioned that team member can remove a tag from a task. But we cannot have empty field in the tag field. There is need to have at least one tag per task.
-Rewrite the story TAG-004 with the above needs
+TAG-004: to correct (historical)
+Earlier correction required at least one tag per task. That rule was later reversed: tags are optional, including an empty tag list.
 
+TAG-004: current correction
+Rewrite TAG-004 so a team member can replace or remove tags, including clearing all tags. Blank or whitespace-only tag values are ignored (not stored).
 
 TAG-006: to remove
 Similar to story TAG-003 
@@ -98,16 +98,17 @@ Acceptance Criteria:
 •	The filtered task list includes title, id, status, priority, description, assignee, and tags.
 •	Filtering by a tag that does not exist returns an empty task list.
 ________________________________________
-ID: TAG-004 
+ID: TAG-004
 Story:
-As a team member, I want to replace or remove a tag from a task so that I can keep its categorization accurate while ensuring every task has at least one tag.
+As a team member, I want to replace or remove tags from a task so that I can keep its categorization accurate, including clearing all tags when none apply.
 Acceptance Criteria:
-•	A team member can remove an existing tag from a task only when at least one other tag remains.
-•	A team member can replace an existing tag with another valid tag.
-•	The tags field must contain at least one non-blank tag for every task.
-•	Attempting to remove the only tag from a task returns HTTP 422.
-•	Other tas
-•	k information remains unchanged when a tag is removed or replaced.
+•	A team member can remove an existing tag from a task.
+•	A team member can remove the last remaining tag, leaving the task with an empty tag list.
+•	A team member can replace existing tags with another valid set of tags (including replacing with an empty list).
+•	Tags remain normalized (trimmed, lowercased, de-duplicated) when updated.
+•	Blank or whitespace-only tag values in a submitted list are ignored (not stored).
+•	Other task fields remain unchanged when tags are removed or replaced.
+•	Updating tags for a task that does not exist returns HTTP 404.
 ________________________________________
 ID: TAG-005
 Story:
@@ -116,7 +117,7 @@ Acceptance Criteria:
 •	A task cannot contain the same tag more than once.
 •	Adding an existing tag does not create a duplicate entry.
 •	Tags are compared consistently when checking for duplicates.
-•	A blank tag value returns HTTP 422.
+•	Blank or whitespace-only tag values are ignored (not stored).
 
 ## Feature 2: Selected feature: Task comments
 
