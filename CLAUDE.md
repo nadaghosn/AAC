@@ -14,11 +14,11 @@ Pinned in `requirements.txt`:
 
 Frontend: vanilla JavaScript/HTML/CSS — `frontend/index.html` is a single static file, no framework, no build step, no `package.json`.
 
-[VERIFY] Python 3.11 — no `.python-version`, `runtime.txt`, or `pyproject.toml` was found pinning an interpreter version; the local environment's `python3 --version` reports 3.13.5. Confirm the intended course version separately.
+Python 3.11 at least —
 
-[VERIFY] pytest — not listed in `requirements.txt` or anywhere else in the repo; no pinned version found.
+pytest for tests —
 
-[VERIFY] httpx — not listed in `requirements.txt` and not imported directly anywhere in `app/` or `tests/`. FastAPI's `TestClient` depends on it internally, but the repo does not declare or pin it.
+httpx for tests —
 
 ## 2. Run command
 
@@ -86,5 +86,11 @@ If the frontend is served from a different origin/port than the ones listed, it 
 - Do not add a database or any persistence layer.
 - Do not add deployment steps or config (Docker, CI, hosting).
 - Do not make major UI changes.
+- Do not change public response shapes without explicit approval
+- Do not remove tests to make CI pass
+- Do not run destructive shell commands without explicit confirmation
+- Do not use always allow for abroad shell permissions
 
 ...without asking first.
+
+@README.md
