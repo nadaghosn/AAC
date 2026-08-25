@@ -123,7 +123,7 @@ def health() -> HealthResponse:
 
     Example:
         GET /health ->
-        {"status": "ok", "timestamp": "2026-08-25T10:00:00+00:00"}
+        {"status": "ok", "timestamp": "2026-08-25T10:00:00Z"}
     """
     return HealthResponse(
         status="ok",

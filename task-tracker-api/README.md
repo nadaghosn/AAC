@@ -53,7 +53,7 @@ Then open `http://localhost:5500`. (CORS is configured in `app/main.py` to allow
 pytest -v
 ```
 
-This discovers the full suite under `tests/` (currently 44 tests in `tests/test_tasks.py`, covering task CRUD, tags, comments, and status transitions).
+This discovers the full suite under `tests/` (currently 45 tests in `tests/test_tasks.py`, covering task CRUD, tags, comments, and status transitions).
 
 `tests/verify_a.py` is a separate, standalone manual verification script (not part of the pytest suite — it has no `test_`-prefixed functions) and is run directly:
 ```bash

@@ -189,6 +189,18 @@ def test_patch_explicit_null_title_returns_422_and_keeps_title(client, created_t
     assert get_response.json()["title"] == "fixture task"
 
 
+# Verify PATCHing a blank/whitespace title returns 422 and leaves the existing title unchanged.
+def test_patch_blank_title_returns_422_and_keeps_title(client, created_task):
+    response = client.patch(
+        f"/tasks/{created_task['id']}",
+        json={"title": "   "},
+    )
+    assert response.status_code == 422
+    get_response = client.get(f"/tasks/{created_task['id']}")
+    assert get_response.status_code == 200
+    assert get_response.json()["title"] == "fixture task"
+
+
 # Verify omitting title on PATCH leaves the existing title unchanged.
 def test_patch_omit_title_keeps_existing_title(client, created_task):
     response = client.patch(
