@@ -47,6 +47,35 @@ python -m http.server 5500
 ```
 Then open `http://localhost:5500`. (CORS is configured in `app/main.py` to allow this origin — see `app/main.py`'s `CORSMiddleware` config if you serve the frontend from elsewhere.)
 
+## API quick reference
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/` | API metadata and links to docs/health/tasks |
+| GET | `/json/version` | Name + version (answers browser/extension version probes) |
+| GET | `/health` | Health check — `{"status": "ok", "timestamp": "..."}` |
+| GET | `/tasks` | List tasks, optionally filtered by `status`, `priority`, and/or `tag` query params |
+| POST | `/tasks` | Create a task — returns `201` |
+| GET | `/tasks/{task_id}` | Get a single task by id |
+| PATCH | `/tasks/{task_id}` | Partially update a task, including status transitions |
+| DELETE | `/tasks/{task_id}` | Delete a task — returns `204` |
+| POST | `/tasks/{task_id}/comments` | Add a comment to a task (a task holds at most one) — returns `201` |
+| GET | `/tasks/{task_id}/comments` | Get a task's comment |
+| PATCH | `/tasks/{task_id}/comments` | Update a task's comment text |
+| PUT | `/tasks/{task_id}/comments` | Replace a task's comment text |
+| DELETE | `/tasks/{task_id}/comments` | Delete a task's comment — returns `204` |
+
+**Valid status transitions** (`PATCH /tasks/{task_id}` with a `status` field):
+
+| From | To |
+|---|---|
+| `ToDo` | `InProgress` |
+| `InProgress` | `Done` |
+| `Done` | `InProgress` |
+| any status | itself (no-op, allowed) |
+
+Any other transition (e.g. `ToDo` → `Done` directly) returns `422`.
+
 ## Run tests
 
 ```bash
