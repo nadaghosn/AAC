@@ -19,11 +19,13 @@ def _reset_storage():
     storage._reset()
 
 
+# Provide a FastAPI TestClient for making requests against the app.
 @pytest.fixture
 def client():
     return TestClient(app)
 
 
+# Create and return a fixture task via POST /tasks for tests to build on.
 @pytest.fixture
 def created_task(client):
     response = client.post(

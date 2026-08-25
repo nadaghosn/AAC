@@ -50,6 +50,7 @@ app.add_middleware(
 )
 
 
+# Return basic API metadata and links to docs/health/tasks.
 @app.get("/", tags=["root"])
 def root() -> dict:
     """Return basic API metadata and links to docs/health/tasks.
@@ -77,6 +78,7 @@ def root() -> dict:
     }
 
 
+# Return the API name and version for browser/extension version probes.
 @app.get("/json/version", tags=["root"])
 def json_version() -> dict:
     """Return the API name and version for browser/extension version probes.
@@ -104,6 +106,7 @@ def json_version() -> dict:
     }
 
 
+# Health check endpoint used to confirm the API process is running.
 @app.get("/health", response_model=HealthResponse, tags=["health"])
 def health() -> HealthResponse:
     """Health check endpoint used to confirm the API process is running.
@@ -128,6 +131,7 @@ def health() -> HealthResponse:
     )
 
 
+# List tasks, optionally filtered by status, priority, and/or tag.
 @app.get("/tasks", response_model=list[TaskResponse], tags=["tasks"])
 def list_tasks(
     status: Optional[TaskStatus] = None,
@@ -159,6 +163,7 @@ def list_tasks(
     return storage.get_all_tasks(status=status, priority=priority, tag=tag)
 
 
+# Create a new task.
 @app.post("/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED, tags=["tasks"])
 def create_task(payload: TaskCreate) -> TaskResponse:
     """Create a new task.
@@ -186,6 +191,7 @@ def create_task(payload: TaskCreate) -> TaskResponse:
     return storage.add_task(payload)
 
 
+# Fetch a single task by id.
 @app.get("/tasks/{task_id}", response_model=TaskResponse, tags=["tasks"])
 def get_task(task_id: str) -> TaskResponse:
     """Fetch a single task by id.
@@ -212,6 +218,7 @@ def get_task(task_id: str) -> TaskResponse:
 
 
 
+# Partially update a task's fields, including status transitions.
 @app.patch("/tasks/{task_id}", response_model=TaskResponse, tags=["tasks"])
 def update_task(task_id: str, payload: TaskUpdate) -> TaskResponse:
     """Partially update a task's fields, including status transitions.
@@ -269,6 +276,7 @@ def update_task(task_id: str, payload: TaskUpdate) -> TaskResponse:
     return updated
 
 
+# Delete a task by id.
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["tasks"])
 def delete_task(task_id: str) -> None:
     """Delete a task by id.
@@ -293,6 +301,7 @@ def delete_task(task_id: str) -> None:
         )
 
 
+# Add a comment to a task.
 @app.post(
     "/tasks/{task_id}/comments",
     response_model=CommentResponse,
@@ -336,6 +345,7 @@ def create_comment(task_id: str, payload: CommentCreate) -> CommentResponse:
     return comment
 
 
+# Fetch the comment attached to a task, if any.
 @app.get(
     "/tasks/{task_id}/comments",
     response_model=CommentResponse,
@@ -372,6 +382,7 @@ def read_comment(task_id: str) -> CommentResponse:
     return comment
 
 
+# Partially update a task's comment text.
 @app.patch(
     "/tasks/{task_id}/comments",
     response_model=CommentResponse,
@@ -411,6 +422,7 @@ def patch_comment(task_id: str, payload: CommentUpdate) -> CommentResponse:
     return comment
 
 
+# Replace a task's comment text.
 @app.put(
     "/tasks/{task_id}/comments",
     response_model=CommentResponse,
@@ -448,6 +460,7 @@ def put_comment(task_id: str, payload: CommentUpdate) -> CommentResponse:
     return comment
 
 
+# Delete a task's comment.
 @app.delete(
     "/tasks/{task_id}/comments",
     status_code=status.HTTP_204_NO_CONTENT,

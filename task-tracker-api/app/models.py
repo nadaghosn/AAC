@@ -50,6 +50,7 @@ class CommentCreate(BaseModel):
 
     text: str
 
+    # Validate and normalize comment text for creation.
     @field_validator("text")
     @classmethod
     def validate_text(cls, value: str) -> str:
@@ -74,6 +75,7 @@ class CommentUpdate(BaseModel):
 
     text: str
 
+    # Validate and normalize comment text for an update.
     @field_validator("text")
     @classmethod
     def validate_text(cls, value: str) -> str:
@@ -111,6 +113,7 @@ class TaskCreate(BaseModel):
     tags: List[str] = Field(default_factory=list)
     comment: Optional[str] = None
 
+    # Validate and normalize a task title for creation.
     @field_validator("title")
     @classmethod
     def validate_title(cls, value: str) -> str:
@@ -135,6 +138,7 @@ class TaskCreate(BaseModel):
             raise ValueError("title must be at most 200 characters")
         return stripped
 
+    # Normalize the tags field for creation.
     @field_validator("tags", mode="before")
     @classmethod
     def normalize_tags(cls, value):
@@ -153,6 +157,7 @@ class TaskCreate(BaseModel):
         """
         return _normalize_tags(value)
 
+    # Normalize the optional comment field for creation.
     @field_validator("comment", mode="before")
     @classmethod
     def validate_comment(cls, value):
@@ -190,6 +195,7 @@ class TaskUpdate(BaseModel):
     assignee: Optional[str] = None
     tags: Optional[List[str]] = None
 
+    # Validate and normalize title when explicitly provided in an update.
     @field_validator("title", mode="before")
     @classmethod
     def validate_title(cls, value):
@@ -224,6 +230,7 @@ class TaskUpdate(BaseModel):
             raise ValueError("title must be at most 200 characters")
         return stripped
 
+    # Normalize the tags field when explicitly provided in an update.
     @field_validator("tags", mode="before")
     @classmethod
     def normalize_tags(cls, value):

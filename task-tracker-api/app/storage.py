@@ -16,6 +16,7 @@ from app.models import (
 _tasks: dict[str, TaskResponse] = {}
 
 
+# Create and persist a new task from validated input.
 def add_task(payload: TaskCreate) -> TaskResponse:
     """Create and persist a new task from validated input.
 
@@ -54,6 +55,7 @@ def add_task(payload: TaskCreate) -> TaskResponse:
     return task
 
 
+# Return all stored tasks, optionally filtered.
 def get_all_tasks(
     status: Optional[TaskStatus] = None,
     priority: Optional[TaskPriority] = None,
@@ -89,6 +91,7 @@ def get_all_tasks(
     return results
 
 
+# Look up a single task by id.
 def get_task_by_id(task_id: str) -> Optional[TaskResponse]:
     """Look up a single task by id.
 
@@ -105,6 +108,7 @@ def get_task_by_id(task_id: str) -> Optional[TaskResponse]:
     return _tasks.get(task_id)
 
 
+# Apply a partial update to a stored task.
 def update_task(task_id: str, payload: TaskUpdate) -> Optional[TaskResponse]:
     """Apply a partial update to a stored task.
 
@@ -153,6 +157,7 @@ def update_task(task_id: str, payload: TaskUpdate) -> Optional[TaskResponse]:
     return updated
 
 
+# Delete a task by id.
 def delete_task(task_id: str) -> bool:
     """Delete a task by id.
 
@@ -172,6 +177,7 @@ def delete_task(task_id: str) -> bool:
     return True
 
 
+# Look up whether a task exists and its comment, if any.
 def get_comment(task_id: str) -> tuple[bool, Optional[CommentResponse]]:
     """Look up whether a task exists and its comment, if any.
 
@@ -192,6 +198,7 @@ def get_comment(task_id: str) -> tuple[bool, Optional[CommentResponse]]:
     return True, task.comment
 
 
+# Attach a comment to a task that doesn't already have one.
 def add_comment(task_id: str, payload: CommentCreate) -> Optional[CommentResponse]:
     """Attach a comment to a task that doesn't already have one.
 
@@ -223,6 +230,7 @@ def add_comment(task_id: str, payload: CommentCreate) -> Optional[CommentRespons
     return comment
 
 
+# Update the text of a task's existing comment.
 def update_comment(task_id: str, payload: CommentUpdate) -> Optional[CommentResponse]:
     """Update the text of a task's existing comment.
 
@@ -254,6 +262,7 @@ def update_comment(task_id: str, payload: CommentUpdate) -> Optional[CommentResp
     return comment
 
 
+# Replace the text of a task's existing comment.
 def replace_comment(task_id: str, payload: CommentUpdate) -> Optional[CommentResponse]:
     """Replace the text of a task's existing comment.
 
@@ -293,6 +302,7 @@ def replace_comment(task_id: str, payload: CommentUpdate) -> Optional[CommentRes
     return comment
 
 
+# Remove a task's comment, if it has one.
 def delete_comment(task_id: str) -> bool:
     """Remove a task's comment, if it has one.
 
