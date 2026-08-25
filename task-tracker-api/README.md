@@ -1,5 +1,7 @@
 # Task Tracker API (Module 4)
 
+Branch reviewed: final-project
+
 A learning-project REST API for tracking tasks and their comments, built with Python, FastAPI, and Pydantic. Storage is in-memory only; the API supports full task CRUD, tag/status/priority filtering, status-transition rules, and a single comment per task. Module 4 adds a Dockerfile and CI workflow on top of the Module 1–3 application.
 
 This is a learning project. It is **not** deployment-ready: there is no authentication/authorization, no database or persistent storage, and no production process manager or hosting configuration (see [Limitations](#project-conventions-and-current-limitations) below).
@@ -168,3 +170,9 @@ No `docs/decisions/` directory exists in this repository. The closest available 
 - [`docs/midcourse/mini-adr.md`](docs/midcourse/mini-adr.md)
 
 Other related course documentation lives alongside it in [`docs/midcourse/`](docs/midcourse/) (user stories, verification notes, reflection).
+
+## Evidence files
+
+- [`docs/release-evidence.md`](docs/release-evidence.md)
+- [`docs/final-ai-review.md`](docs/final-ai-review.md)
+- [`docs/ai-playbook.md`](docs/ai-playbook.md)
