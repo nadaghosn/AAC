@@ -56,14 +56,19 @@ Security Review T2
 
 # 4. Manual check
 Manual Check
-
 | number_id | what_i_checked | what_i_found | why_it_matters |
-|---|---|---|
+|1| If the application supports non-latin alphabet| The arabic and chinese can be used but there will be limitation with alignement and mixed direction| to have the application used using various languages |
 
 # 5. Rejected and corrected AI output
 
-| number_id | what_i_suggested | why_i_did_not_accept | what_i_did_instead |
-|---|---|---|---|
+| number_id | what_ai_suggested | why_i_did_not_accept | what_i_did_instead |
+| SEC-04 | CI supply-chain integrity is not fully pinned or verified: GitHub Actions use mutable version tags (`@v4`, `@v5`) rather than commit SHAs. Direct Python dependencies are version-pinned, but installation does not enforce hashes or a fully resolved transitive lock; CI has no dependency-vulnerability scan. AI Suggestion: Pin actions by commit SHA, use a hash-locked dependency artifact, and add a dependency/SCA check to CI. | I did not accept as this will not affect the workflow | I did not retain the suggestion |
 
-# 6. Ownership statement
+# 6. Three AI rules
+a. Never paste: unverified script
+b. Always verify: test each step, and step by step. Try to break the test check the resutl and restore the test
+c. Record AI contributions by: mentioning the AI tools used, brief summary on tasks requested, brief summary on my inspection and decision
+
+
+# 7. Ownership statement
 This repo was prepared by me. I have asked support from various AI tools to provide propositions on various aspects of the application: users stories, architecture, skeleton, backend, frontend, CI workflow, docking, documentation using docstrings, security review... The AI has provided suggestions. I decided what to choose and to discard. I had added manual scripts when needed (ex: business_rules). I discarded redundant stories, redundant tests. I asked to add doctrings above each function.  
