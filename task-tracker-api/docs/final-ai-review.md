@@ -54,4 +54,16 @@ Security Review T2
 | SEC-03 | CORS allows the opaque `null` origin and wildcard methods and headers. | `app/main.py:41-49` includes `"null"` in `allow_origins` and uses `allow_methods=["*"]` and `allow_headers=["*"]`; credentials are disabled. | valid | The configuration is present exactly as reported. The lack of credentials reduces impact, but it remains an unnecessary permission for non-local deployment. | Defer during Module 5; remove `null` and enumerate required methods and headers before non-local deployment. | The FastAPI `CORSMiddleware` origin, method, header, and credential settings. | The configuration explicitly permits `null` and wildcards, while disabling credentials. | Browser contexts with an opaque origin can call the API; least-privilege CORS reduces accidental exposure. | valid | It affect credentials | need to check manually |
 
 
+# 4. Manual check
+Manual Check
 
+| number_id | what_i_checked | what_i_found | why_it_matters |
+|---|---|---|
+
+# 5. Rejected and corrected AI output
+
+| number_id | what_i_suggested | why_i_did_not_accept | what_i_did_instead |
+|---|---|---|---|
+
+# 6. Ownership statement
+This repo was prepared by me. I have asked support from various AI tools to provide propositions on various aspects of the application: users stories, architecture, skeleton, backend, frontend, CI workflow, docking, documentation using docstrings, security review... The AI has provided suggestions. I decided what to choose and to discard. I had added manual scripts when needed (ex: business_rules). I discarded redundant stories, redundant tests. I asked to add doctrings above each function.  
