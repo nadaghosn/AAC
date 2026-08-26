@@ -6,13 +6,13 @@ A learning-project REST API for tracking tasks and their comments, built with Py
 
 This is a learning project. It is **not** deployment-ready: there is no authentication/authorization, no database or persistent storage, and no production process manager or hosting configuration (see [Limitations](#project-conventions-and-current-limitations) below).
 
-## Prerequisites
+## 1. Prerequisites
 
 - Python 3.11+
 - `pip` and the standard library `venv` module
 - Docker (only needed for the [Run with Docker](#run-with-docker) section)
 
-## Local setup
+## 2. Local setup
 
 All commands below assume your working directory is `task-tracker-api/` (this directory). The actual git repository root is one level up, at the parent `AAC/` folder — confirm this README should treat `task-tracker-api/` as the effective project root.
 
@@ -32,7 +32,7 @@ pip install -r requirements.txt
 
 An `.env.example` file is provided (`PORT`, `APP_ENV`). Copying it to `.env` is optional — `python-dotenv` loads it at startup, but neither variable currently changes runtime behavior (`PORT` isn't read anywhere in `app/`, and `APP_ENV` is assigned once in `app/main.py` but not used afterward).
 
-## Run the app locally
+## 3. Run the app locally
 
 ```bash
 uvicorn app.main:app --reload --port 8000
@@ -49,7 +49,7 @@ python -m http.server 5500
 ```
 Then open `http://localhost:5500`. (CORS is configured in `app/main.py` to allow this origin — see `app/main.py`'s `CORSMiddleware` config if you serve the frontend from elsewhere.)
 
-## API quick reference
+## 4. API quick reference
 
 | Method | Path | Description |
 |---|---|---|
@@ -78,7 +78,7 @@ Then open `http://localhost:5500`. (CORS is configured in `app/main.py` to allow
 
 Any other transition (e.g. `ToDo` → `Done` directly) returns `422`.
 
-## Run tests
+## 5. Run tests
 
 ```bash
 pytest -v
@@ -91,7 +91,7 @@ This discovers the full suite under `tests/` (currently 45 tests in `tests/test_
 python tests/verify_a.py
 ```
 
-## Run with Docker
+## 6. Run with Docker
 
 Build and run manually:
 ```bash
@@ -116,7 +116,7 @@ To stop and remove the container:
 docker rm -f task-tracker-dev
 ```
 
-## CI workflow summary
+## 7. CI workflow summary
 
 The workflow file lives outside this directory, at `../.github/workflows/ci.yml` relative to `task-tracker-api/` — i.e., at the outer repository's root, not inside this module.
 
@@ -125,7 +125,7 @@ The workflow file lives outside this directory, at `../.github/workflows/ci.yml`
 - **Steps:** checkout (`actions/checkout@v4`) → set up Python 3.11 (`actions/setup-python@v5`) → cache `~/.cache/pip` (keyed on the hash of `task-tracker-api/requirements.txt`) → `pip install --upgrade pip` → `pip install -r requirements.txt` → `pytest -v --tb=short`.
 - **What it does not do:** it does not build or run the Docker image, and it does not deploy anywhere — it only installs dependencies and runs the pytest suite.
 
-## Project structure
+## 8. Project structure
 
 ```
 task-tracker-api/
@@ -151,7 +151,7 @@ task-tracker-api/
 
 The repository root also contains several dated markdown notes from course modules (design drafts, verification logs, CI proof checklists) that document the process behind this work but aren't part of the running application.
 
-## Project conventions and current limitations
+## 9. Project conventions and current limitations
 
 - **Storage is in-memory only.** Data resets whenever the process restarts; there is no database and none is planned for this module (per project constraints).
 - **No authentication or authorization.** Every endpoint is open.
@@ -164,20 +164,20 @@ The repository root also contains several dated markdown notes from course modul
 - **`data/tasks.json`** is present in the repo but not read or written by any application code yet.
 - **Not deployment-ready.** The Dockerfile and CI workflow added in this module support local/dev verification (build, healthcheck, automated test runs) — they do not constitute a deployment pipeline, and no hosting, database, or auth has been added.
 
-## Technical notes / decisions
+## 10. Technical notes / decisions
 
 No `docs/decisions/` directory exists in this repository. The closest available technical note is the mini-ADR from the course midcourse deliverables, covering the storage and tags decisions:
 - [`docs/midcourse/mini-adr.md`](docs/midcourse/mini-adr.md)
 
 Other related course documentation lives alongside it in [`docs/midcourse/`](docs/midcourse/) (user stories, verification notes, reflection).
 
-## Evidence files
+## 11. Evidence files
 
 - [`docs/release-evidence.md`](docs/release-evidence.md)
 - [`docs/final-ai-review.md`](docs/final-ai-review.md)
 - [`docs/ai-playbook.md`](docs/ai-playbook.md)
 
-## Backend baseline verification
+## 12. Backend baseline verification
 **Command used to start the API:**
 ```bash
 uvicorn app.main:app --port 8000
@@ -189,7 +189,7 @@ HTTP 200
 {"status":"ok","timestamp":"2026-08-25T16:00:37.555089Z"}
 ```
 
-## Frontline verification
+## 13. Frontline verification
 **How to open the frontend:**
 ```bash
 cd frontend
@@ -199,16 +199,16 @@ Then open `http://localhost:5500` in a browser (with the API running separately 
 
 **Confirmation:** Inspected `frontend/index.html` directly and confirmed the three-column Kanban board (`To Do`, `In Progress`, `Done`, each rendered via `data-status` columns) and the create/edit task flow (`New Task` button and `#task-modal` with an `Edit Task` title triggered via `openTaskModal('edit', task)`) are both still present and intact in the markup/JS — no code was changed.
 
-## Test baseline verification
+## 14. Test baseline verification
 
-### Command run
+### 14.1 Command run
 
 ```bash
 pytest -v
 ```
 (run from `task-tracker-api/`)
 
-### Result
+### 14.2 Result
 
 ```
 45 passed in 0.78s
@@ -216,11 +216,11 @@ pytest -v
 
 Full suite, zero failures.
 
-### Failing tests
+### 14.3 Failing tests
 
 None. No pre-existing-vs-introduced-by-final-work distinction is needed, since nothing failed.
 
-### Full output
+### 14.4 Full output
 
 ```
 ============================= test session starts ==============================
@@ -280,5 +280,5 @@ tests/test_tasks.py::test_delete_comment_when_none_returns_404 PASSED    [100%]
 ```
 
 
-## Short AI summary
+## 15. Short AI summary
 The Task Tracker is a learning application built with FastAPI, Pydantic, and vanilla JavaScript. It provides a Kanban board for creating, updating, filtering, and deleting tasks across To Do, In Progress, and Done statuses. It also supports priorities, tags, controlled status transitions, and one comment per task. Data is stored in memory, so it resets whenever the API restarts. The project includes automated tests, Docker support, and a CI workflow, but it does not include authentication or persistent database storage.
