@@ -164,7 +164,6 @@ The repository also contains several dated markdown notes from course modules (d
 - **`title` is required and non-blank** (after stripping) on both create and update, max 200 characters; `tags` are normalized (lowercased, stripped, de-duplicated); `comment` is optional and normalized similarly.
 - **PATCH and PUT on `/tasks/{task_id}/comments` currently behave identically** — both fully overwrite the comment's text and preserve its original timestamp. If distinct partial-vs-full-replace semantics were intended, they aren't implemented yet.
 - **`pydantic-settings` is an unused dependency** — pinned in `requirements.txt` but not referenced anywhere in `app/` or `tests/`.
-- **`data/tasks.json`** is present in the repo but not read or written by any application code yet.
 - **Not deployment-ready.** The Dockerfile and CI workflow added in this module support local/dev verification (build, healthcheck, automated test runs) — they do not constitute a deployment pipeline, and no hosting, database, or auth has been added.
 
 ## 10. Technical notes / decisions
