@@ -2,12 +2,12 @@
 
 ## Project summary
 
-This repository contains a learning-project Task Tracker API and a single-file browser frontend.
+This repository (root: `task-tracker-api/`) contains a learning-project Task Tracker API and a single-file browser frontend.
 
 - Backend: FastAPI REST API for tasks and one comment per task.
 - Storage: in-memory dictionary only; data resets when the API process restarts.
 - Frontend: vanilla JavaScript Kanban board with To Do, In Progress, and Done columns.
-- Source-of-truth implementation files: `task-tracker-api/app/main.py`, `task-tracker-api/app/models.py`, `task-tracker-api/app/storage.py`, and `task-tracker-api/app/business_rules.py`.
+- Source-of-truth implementation files: `app/main.py`, `app/models.py`, `app/storage.py`, and `app/business_rules.py`.
 
 ## Stack
 
@@ -17,11 +17,11 @@ This repository contains a learning-project Task Tracker API and a single-file b
 - pytest
 - Vanilla JavaScript frontend
 
-See `task-tracker-api/requirements.txt` for pinned Python dependencies.
+See `requirements.txt` for pinned Python dependencies.
 
 ## Run and test commands
 
-Run these from `task-tracker-api/`:
+Run these from the repository root:
 
 ```bash
 uvicorn app.main:app --reload --port 8000
@@ -35,7 +35,9 @@ cd frontend
 python -m http.server 5500
 ```
 
-Docker is supported by `task-tracker-api/Dockerfile`; see `task-tracker-api/README.md` for the documented build and run commands.
+Docker is supported by `Dockerfile`; see `README.md` for the documented build and run commands.
+
+CI runs on every push and pull request via `.github/workflows/ci.yml` (repo root): it sets up Python 3.11, installs `requirements.txt`, and runs `pytest -v --tb=short`. It does not build the Docker image or deploy.
 
 ## Business rules
 
@@ -58,8 +60,8 @@ Docker is supported by `task-tracker-api/Dockerfile`; see `task-tracker-api/READ
 
 - Use a docs-first and read-only-by-default workflow.
 - Treat each Codex thread as one bounded task.
-- Do not edit `task-tracker-api/app/` unless the user explicitly approves one specific minimal fix.
-- Prefer edits under `task-tracker-api/docs/` unless the user explicitly authorizes another path.
+- Do not edit `app/` unless the user explicitly approves one specific minimal fix.
+- Prefer edits under `docs/` unless the user explicitly authorizes another path.
 - Before making repository claims, inspect and cite the files that support them.
 - If a file or behavior is not visible, mark it as not confirmed rather than guessing.
 

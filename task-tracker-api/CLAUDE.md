@@ -53,6 +53,10 @@ Tests (`tests/`):
 
 Supporting docs: `docs/midcourse/` (user-stories, mini-adr, verification, reflection) — course deliverables with rationale behind some of the business rules below.
 
+Packaging / CI (this directory is the git repository root):
+- `Dockerfile` — multi-stage build (deps into a venv, then a slim runtime stage), non-root `app` user, `HEALTHCHECK` on `/health`, `CMD` runs uvicorn without `--reload`. Build context is the repo root; `docker-run.sh` builds + runs + polls `/health`.
+- `.github/workflows/ci.yml` — GitHub Actions, runs on every push and pull request: set up Python 3.11 → `pip install -r requirements.txt` → `pytest -v --tb=short`. Paths are repo-root-relative (no `working-directory` override). It does not build the Docker image and does not deploy.
+
 ## 5. Business rules
 
 Verified directly from `app/models.py` and `app/business_rules.py`:
@@ -84,7 +88,7 @@ If the frontend is served from a different origin/port than the ones listed, it 
 
 - Do not add authentication/authorization.
 - Do not add a database or any persistence layer.
-- Do not add deployment steps or config (Docker, CI, hosting).
+- Do not extend the existing `Dockerfile`/`.github/workflows/ci.yml` into an actual deployment or hosting pipeline (no registry pushes, no deploy jobs, no hosting config). The current Docker + CI setup is for local/dev build and test verification only.
 - Do not make major UI changes.
 - Do not change public response shapes without explicit approval
 - Do not remove tests to make CI pass

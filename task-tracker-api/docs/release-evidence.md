@@ -59,9 +59,9 @@ Checked `.github/workflows/ci.yml` directly (fresh read of the actual file, not 
 |---|---|---|---|
 | 1 | `continue-on-error` | ✅ Not present | Full file grep — no `continue-on-error` key anywhere in the job or any step |
 | 2 | `\|\| true` (or similar exit-code-swallowing) | ✅ Not present | No `\|\|`, `\|`, `tee`, or subshell wrapping on any `run:` line |
-| 3 | Skipped pytest command | ✅ Not skipped | `Run tests` step (line 34-35) runs `pytest -v --tb=short` directly — no `if:` condition disabling it, not commented out |
-| 4 | Vague Python version | ✅ Explicit | `python-version: "3.11"` (line 20) — pinned to the exact minor version required by `CLAUDE.md` ("Python 3.11 at least"), not a wildcard like `"3.x"` or `"*"` |
-| 5 | Missing dependency installation | ✅ Present | `Install dependencies` step (line 31-32) runs `pip install -r requirements.txt` before tests run |
+| 3 | Skipped pytest command | ✅ Not skipped | `Run tests` step (line 31-32) runs `pytest -v --tb=short` directly — no `if:` condition disabling it, not commented out |
+| 4 | Vague Python version | ✅ Explicit | `python-version: "3.11"` (line 17) — pinned to the exact minor version required by `CLAUDE.md` ("Python 3.11 at least"), not a wildcard like `"3.x"` or `"*"` |
+| 5 | Missing dependency installation | ✅ Present | `Install dependencies` step (line 28-29) runs `pip install -r requirements.txt` before tests run |
 
 ## 2.2 Conclusion
 
@@ -79,9 +79,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: task-tracker-api
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -95,7 +92,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('task-tracker-api/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
@@ -372,7 +369,7 @@ Audited the docstrings changed in this branch (`app/main.py`, `app/models.py`), 
 - **Status transitions** (`README.md:129`): `ToDo→InProgress`, `InProgress→Done`, `Done→InProgress`, same-status no-ops, all else `422` — matches `app/business_rules.py:5-12` (`VALID_TRANSITIONS`) exactly.
 - **POST 201 / DELETE 204**: `create_task`, `create_comment` decorators both set `status_code=status.HTTP_201_CREATED`; `delete_task`, `remove_comment` both set `status_code=status.HTTP_204_NO_CONTENT` — matches docstrings, README, and live OpenAPI spec.
 - **Schema names** (`TaskCreate`, `TaskUpdate`, `TaskResponse`, `CommentCreate`, `CommentUpdate`, `CommentResponse`, `HealthResponse`): all present verbatim in the live `/openapi.json` `components.schemas` — no naming drift.
-- **CI workflow summary** (`README.md:88-95`): re-verified the actual file at `../.github/workflows/ci.yml` is tracked and present on `final-project` (not just referenced in commit messages) — triggers, steps, and "doesn't build Docker" claim all match the file content.
+- **CI workflow summary** (`README.md` §7): re-verified the actual file at `.github/workflows/ci.yml` (repo root) is tracked and present on `final-project` (not just referenced in commit messages) — triggers, steps, and "doesn't build Docker" claim all match the file content.
 - **`TaskUpdate.normalize_tags`'s `[VERIFY]` note** (`app/models.py:252-259`) about `tags: null` → downstream `422`: this was already independently verified with `TestClient` in an earlier pass — still holds, no drift.
 
 ## 7.3 Status
@@ -405,7 +402,7 @@ Findings 1 and 3 from `doc2_claims.md` are fixed. Finding 2 (404 not declared in
 # 9. CI evidence
 Release Evidence — CI Evidence
 
-## 9.1 Workflow file: `.github/workflows/ci.yml` (lives at the outer repository root — `../.github/workflows/ci.yml` relative to `task-tracker-api/`, not inside this module; `defaults.run.working-directory: task-tracker-api` scopes its steps here)
+## 9.1 Workflow file: `.github/workflows/ci.yml` (lives at the repository root, which is `task-tracker-api/`; all workflow paths are root-relative, no `working-directory` override)
 
 ## 9.2 Latest run link: [`https://github.com/nadaghosn/AAC/actions/runs/32868169333`](https://github.com/nadaghosn/AAC/actions/runs/32868169333) — **SUCCESS**, branch `final-project`, triggered by push (commit `b0c7ba9`, 2026-08-25). Pulled live via `gh run list`/`gh run view`, not from an older cached note.
 

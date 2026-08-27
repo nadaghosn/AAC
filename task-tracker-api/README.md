@@ -14,7 +14,7 @@ This is a learning project. It is **not** deployment-ready: there is no authenti
 
 ## 2. Local setup
 
-All commands below assume your working directory is `task-tracker-api/` (this directory). The actual git repository root is one level up, at the parent `AAC/` folder — confirm this README should treat `task-tracker-api/` as the effective project root.
+All commands below assume your working directory is `task-tracker-api/` (this directory), which is the git repository root.
 
 **Linux/macOS:**
 ```bash
@@ -118,17 +118,20 @@ docker rm -f task-tracker-dev
 
 ## 7. CI workflow summary
 
-The workflow file lives outside this directory, at `../.github/workflows/ci.yml` relative to `task-tracker-api/` — i.e., at the outer repository's root, not inside this module.
+The workflow file lives at `.github/workflows/ci.yml`, relative to this directory (`task-tracker-api/`), which is the repository root. All paths in the workflow are relative to that root.
 
 - **Triggers:** every `push` and every `pull_request` (no branch filters).
-- **Job:** runs on `ubuntu-latest` with `working-directory: task-tracker-api` for all steps.
-- **Steps:** checkout (`actions/checkout@v4`) → set up Python 3.11 (`actions/setup-python@v5`) → cache `~/.cache/pip` (keyed on the hash of `task-tracker-api/requirements.txt`) → `pip install --upgrade pip` → `pip install -r requirements.txt` → `pytest -v --tb=short`.
+- **Job:** runs on `ubuntu-latest`; steps run from the repository root (no `working-directory` override).
+- **Steps:** checkout (`actions/checkout@v4`) → set up Python 3.11 (`actions/setup-python@v5`) → cache `~/.cache/pip` (keyed on the hash of `requirements.txt`) → `pip install --upgrade pip` → `pip install -r requirements.txt` → `pytest -v --tb=short`.
 - **What it does not do:** it does not build or run the Docker image, and it does not deploy anywhere — it only installs dependencies and runs the pytest suite.
 
 ## 8. Project structure
 
 ```
 task-tracker-api/
+├── .github/
+│   └── workflows/
+│       └── ci.yml         # GitHub Actions: install deps + run pytest
 ├── app/
 │   ├── main.py            # FastAPI app instance, CORS config, all route handlers
 │   ├── models.py          # Pydantic request/response models and field validation
@@ -149,7 +152,7 @@ task-tracker-api/
 └── README.md
 ```
 
-The repository root also contains several dated markdown notes from course modules (design drafts, verification logs, CI proof checklists) that document the process behind this work but aren't part of the running application.
+The repository also contains several dated markdown notes from course modules (design drafts, verification logs, CI proof checklists) that document the process behind this work but aren't part of the running application.
 
 ## 9. Project conventions and current limitations
 
